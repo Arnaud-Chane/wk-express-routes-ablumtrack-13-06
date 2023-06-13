@@ -46,7 +46,24 @@ const postTracks = (req, res) => {
 };
 
 const updateTracks = (req, res) => {
-  res.status(200).send('Update route is OK');
+  const id = parseInt(req.params.id);
+  const { title, youtube_url, id_album } = req.body;
+
+  db.query(
+    'update track set title = ?, youtube_url = ?, id_album = ? where id = ?',
+    [title, youtube_url, id_album, id]
+  )
+    .then((result) => {
+      if (result.affectedRows === 0) {
+        res.status(404).send('Not found');
+      } else {
+        res.sendStatus(204);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send('Pb editing Track');
+    });
 };
 
 const deleteTracks = (req, res) => {

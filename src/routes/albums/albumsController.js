@@ -49,7 +49,24 @@ const postAlbums = (req, res) => {
 };
 
 const updateAlbums = (req, res) => {
-  res.status(200).send('Update route is OK');
+  const id = parseInt(req.params.id);
+  const { title, genre, picture, artist } = req.body;
+
+  db.query(
+    'update albums set title = ?, genre = ?, picture = ?, artist = ? where id = ?',
+    [title, genre, picture, artist, id]
+  )
+    .then((result) => {
+      if (result.affectedRows === 0) {
+        res.status(404).send('Not found');
+      } else {
+        res.sendStatus(204);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send('Pb editing album');
+    });
 };
 
 const deleteAlbums = (req, res) => {
