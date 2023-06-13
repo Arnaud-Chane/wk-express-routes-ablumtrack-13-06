@@ -2,11 +2,30 @@ const connexion = require('../../../db-config');
 const db = connexion.promise();
 
 const getAll = (req, res) => {
-  res.status(200).send('Get All route is OK');
+  db.query('SELECT * FROM albums')
+    .then(([albums]) => {
+      res.status(200).json(albums);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(400).send("Can't retreive all albums");
+    });
 };
 
 const getOne = (req, res) => {
-  res.status(200).send('Get One route is OK');
+  const id = parseInt(req.params.id);
+  db.query('SELECT * FROM albums where id = ?', [id])
+    .then(([albums]) => {
+      if (albums[0] != null) {
+        res.json(albums[0]);
+      } else {
+        res.status(404).send('Not Found');
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send('got pb');
+    });
 };
 
 const getTracksByAlbumId = (req, res) => {
@@ -14,7 +33,19 @@ const getTracksByAlbumId = (req, res) => {
 };
 
 const postAlbums = (req, res) => {
-  res.status(200).send('Post route is OK');
+  const { title, genre, picture, artist } = req.body;
+
+  db.query(
+    'INSERT INTO albums(title, genre, picture, artist) VALUES(?,?,?,?)',
+    [title, genre, picture, artist]
+  )
+    .then(([result]) => {
+      res.location(`/api/albums/${result.insertId}`).sendStatus(201);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send('Nope for new album');
+    });
 };
 
 const updateAlbums = (req, res) => {
@@ -22,7 +53,20 @@ const updateAlbums = (req, res) => {
 };
 
 const deleteAlbums = (req, res) => {
-  res.status(200).send('Delete route is Ok');
+  const id = parseInt(req.params.id);
+
+  db.query('delete from albums where id = ?', [id])
+    .then(([result]) => {
+      if (result.affectedRows === 0) {
+        res.status(404).send('Not found');
+      } else {
+        res.sendStatus(204);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send('Pb deleting User');
+    });
 };
 
 module.exports = {
